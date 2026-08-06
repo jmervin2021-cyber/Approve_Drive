@@ -3,22 +3,20 @@ import * as XLSX from 'xlsx';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 export async function POST(request) {
   try {
     const formData = await request.json();
 
-    const dataDir = path.join(process.cwd(), 'data');
+    // Use OS temp directory for safe file handling in serverless/codespace environments
+    const tempDir = os.tmpdir();
+    const excelFilePath = path.join(tempDir, 'ControlByCrews_Master_Drivers.xlsx');
     const archiveDir = path.join(process.cwd(), 'public', 'archives', 'drivers');
 
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
     if (!fs.existsSync(archiveDir)) {
       fs.mkdirSync(archiveDir, { recursive: true });
     }
-
-    const excelFilePath = path.join(dataDir, 'ControlByCrews_Master_Drivers.xlsx');
 
     let workbook;
     let worksheet;
@@ -39,6 +37,7 @@ export async function POST(request) {
       }];
       worksheet = XLSX.utils.json_to_sheet(initialData);
       XLSX.utils.book_append_sheet(workbook, worksheet, "MasterLog");
+      XLSX.writeFile(workbook, excelFilePath);
     } else {
       workbook = XLSX.readFile(excelFilePath);
       worksheet = workbook.Sheets['MasterLog'] || workbook.Sheets[workbook.SheetNames[0]];
@@ -60,12 +59,12 @@ export async function POST(request) {
     XLSX.utils.sheet_add_json(worksheet, [newDriverRow], { skipHeader: true, origin: -1 });
     XLSX.writeFile(workbook, excelFilePath);
 
+    // Generate PDF archive
     const timestamp = Date.now();
     const safeName = formData.employeeName ? formData.employeeName.toLowerCase().replace(/\s+/g, '_') : 'driver';
     const pdfFileName = `${safeName}_${timestamp}_promotion.pdf`;
     const pdfFullPath = path.join(archiveDir, pdfFileName);
 
-    // Generate PDF securely
     const doc = new PDFDocument();
     const stream = fs.createWriteStream(pdfFullPath);
     doc.pipe(stream);
