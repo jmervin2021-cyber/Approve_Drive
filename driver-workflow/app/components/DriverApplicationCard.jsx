@@ -2,25 +2,30 @@
 import React, { useState } from 'react';
 
 export default function DriverApplicationCard() {
+  // Form State - Starts completely blank for live data entry
   const [formData, setFormData] = useState({
+    // Step 1
     employeeName: '',
     division: '',
     dispatcherName: '',
     dateOfHire: '',
     county: '',
     requestDate: '',
+    // Step 2
     mvrDate: '',
     mvrSupervisor: '',
-    mvrStatus: '', 
+    mvrStatus: '', // 'approved' or 'denied'
     mvrComments: '',
+    // Step 3
     gmReviewer: '',
     gmReviewDate: '',
     truckClassDate: '',
     truckClassScore: '',
     attendanceRecord: '',
     safetyRecord: '',
-    gmStatus: '', 
+    gmStatus: '', // 'approved' or 'denied'
     gmComments: '',
+    // Step 4 Sign-offs
     dispatcherSign: false,
     fleetSign: false,
     gmSign: false,
@@ -37,12 +42,13 @@ export default function DriverApplicationCard() {
       <div className="max-w-5xl mx-auto bg-[#121821] rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
         <div className="bg-[#1A222D] px-6 py-4 flex justify-between items-center border-b border-gray-800">
           <div className="flex items-center gap-4">
-            {/* Logo integration */}
-            <img 
-              src="/logo.png" 
-              alt="Crews Control Logo" 
-              className="w-12 h-12 object-contain rounded-full bg-[#0A0E14] p-1 border border-[#22C55E]/40 shadow-md"
-            />
+            <div className="w-12 h-12 rounded-full bg-[#0A0E14] border border-[#22C55E]/40 flex items-center justify-center overflow-hidden shadow-md p-1">
+              <img 
+                src="/logo.png" 
+                alt="Crews Control Logo" 
+                className="w-full h-full object-cover scale-110"
+              />
+            </div>
             <div>
               <h1 className="text-2xl font-bold tracking-wider text-gray-100">DRIVER APPLICATION RECORD</h1>
               <p className="text-gray-400 text-sm mt-0.5">Control by Crews — Master Pipeline</p>
