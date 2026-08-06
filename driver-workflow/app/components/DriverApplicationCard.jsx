@@ -2,25 +2,30 @@
 import React, { useState } from 'react';
 
 export default function DriverApplicationCard() {
+  // Form State - Starts completely blank for live data entry
   const [formData, setFormData] = useState({
+    // Step 1
     employeeName: '',
     division: '',
     dispatcherName: '',
     dateOfHire: '',
     county: '',
     requestDate: '',
+    // Step 2
     mvrDate: '',
     mvrSupervisor: '',
-    mvrStatus: '', 
+    mvrStatus: '', // 'approved' or 'denied'
     mvrComments: '',
+    // Step 3
     gmReviewer: '',
     gmReviewDate: '',
     truckClassDate: '',
     truckClassScore: '',
     attendanceRecord: '',
     safetyRecord: '',
-    gmStatus: '', 
+    gmStatus: '', // 'approved' or 'denied'
     gmComments: '',
+    // Step 4 Sign-offs
     dispatcherSign: false,
     fleetSign: false,
     gmSign: false,
@@ -28,6 +33,18 @@ export default function DriverApplicationCard() {
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFinalPromotion = () => {
+    // Validate that all 3 sign-offs are checked
+    if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
+      alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
+      return;
+    }
+
+    // Trigger PDF Generation & Excel Data Sync logic placeholder
+    console.log("Generating PDF Archive & Updating Master Excel Log with data:", formData);
+    alert("Driver successfully promoted! PDF generated and Master Excel sheet auto-updated.");
   };
 
   return (
@@ -128,7 +145,7 @@ export default function DriverApplicationCard() {
             </div>
           </section>
 
-          {/* STEP 2: MVR REVIEW */}
+          {/* STEP 2: MVR REVIEW (TURNS RED IF DENIED/FLAGGED) */}
           <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
             formData.mvrStatus === 'denied' 
               ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
@@ -198,7 +215,7 @@ export default function DriverApplicationCard() {
             </div>
           </section>
 
-          {/* STEP 3: GENERAL MANAGER REVIEW */}
+          {/* STEP 3: GENERAL MANAGER REVIEW (TURNS RED IF DENIED/FLAGGED) */}
           <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
             formData.gmStatus === 'denied' 
               ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
@@ -359,7 +376,10 @@ export default function DriverApplicationCard() {
               </div>
             </div>
 
-            <button className="mt-8 w-full bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors cursor-pointer">
+            <button 
+              onClick={handleFinalPromotion}
+              className="mt-8 w-full bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors cursor-pointer"
+            >
               Execute Final Promotion to Driver Class
             </button>
           </section>
@@ -368,22 +388,4 @@ export default function DriverApplicationCard() {
       </div>
     </div>
   );
-}// Handler for Final Promotion Execution
-  const handleFinalPromotion = () => {
-    // 1. Validate that all 3 sign-offs are checked
-    if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
-      alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
-      return;
-    }
-
-    // 2. Trigger PDF Generation & Excel Data Sync
-    console.log("Generating PDF Archive & Updating Master Excel Log with data:", formData);
-    
-    // Placeholder success alert (Will connect to your backend API / Control by Crews router)
-    alert("Driver successfully promoted! PDF generated and Master Excel sheet auto-updated.");
-  };<button 
-              onClick={handleFinalPromotion}
-              className="mt-8 w-full bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors cursor-pointer"
-            >
-              Execute Final Promotion to Driver Class
-            </button>
+}
