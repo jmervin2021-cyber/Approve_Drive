@@ -42,7 +42,7 @@ export default function DriverApplicationCard() {
 
     try {
       // Send data to our Node.js backend server
-      const response = await fetch('http://localhost:5000/api/promote-driver', {
+      const response = await fetch('/api/promote-driver', { {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
