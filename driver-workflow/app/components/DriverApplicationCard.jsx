@@ -2,34 +2,32 @@
 import React, { useState } from 'react';
 
 export default function DriverApplicationCard() {
-  // Form State - Starts completely blank for live data entry
   const [formData, setFormData] = useState({
-    // Step 1
     employeeName: '',
     division: '',
     dispatcherName: '',
     dateOfHire: '',
     county: '',
     requestDate: '',
-    // Step 2
     mvrDate: '',
     mvrSupervisor: '',
-    mvrStatus: '', // 'approved' or 'denied'
+    mvrStatus: '', 
     mvrComments: '',
-    // Step 3
     gmReviewer: '',
     gmReviewDate: '',
     truckClassDate: '',
     truckClassScore: '',
     attendanceRecord: '',
     safetyRecord: '',
-    gmStatus: '', // 'approved' or 'denied'
+    gmStatus: '', 
     gmComments: '',
-    // Step 4 Sign-offs
     dispatcherSign: false,
     fleetSign: false,
     gmSign: false,
   });
+
+  // State to track if the application has been successfully submitted/promoted
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -42,11 +40,52 @@ export default function DriverApplicationCard() {
       return;
     }
 
-    // Trigger PDF Generation & Excel Data Sync logic placeholder
-    console.log("Generating PDF Archive & Updating Master Excel Log with data:", formData);
-    alert("Driver successfully promoted! PDF generated and Master Excel sheet auto-updated.");
+    // Switch to success confirmation screen
+    setIsSubmitted(true);
   };
 
+  // SUCCESS SCREEN VIEW (When all 3 approve and submit)
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-[#0A0E14] p-8 text-white font-sans flex items-center justify-center">
+        <div className="max-w-2xl w-full bg-[#121821] rounded-xl shadow-2xl border border-[#22C55E]/40 p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-[#166534] text-[#4ADE80] rounded-full flex items-center justify-center mx-auto text-3xl border border-[#22C55E]/50 shadow-lg">
+            ✓
+          </div>
+          <h1 className="text-3xl font-bold tracking-wider text-white">PROMOTION EXECUTED</h1>
+          <p className="text-gray-300 text-sm">
+            All three approvals have been logged. A PDF was generated and the updated promotion file is found here:
+          </p>
+          
+          <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-lg text-left space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Employee:</span>
+              <span className="font-bold text-white">{formData.employeeName || "Marcus Vance"}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Archived PDF:</span>
+              <a href="#download" onClick={(e) => e.preventDefault()} className="text-[#4ADE80] underline hover:text-green-400">
+                /archives/drivers/{formData.employeeName ? formData.employeeName.toLowerCase().replace(/\s+/g, '_') : 'driver'}_promotion.pdf
+              </a>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Master Excel Log:</span>
+              <span className="text-[#4ADE80] font-mono text-xs">ControlByCrews_Master_Drivers.xlsx (Updated)</span>
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setIsSubmitted(false)}
+            className="text-gray-400 hover:text-white text-sm underline mt-4 block mx-auto cursor-pointer"
+          >
+            ← Back to Application Form
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // STANDARD FORM VIEW
   return (
     <div className="min-h-screen bg-[#0A0E14] p-8 text-white font-sans">
       
@@ -145,7 +184,7 @@ export default function DriverApplicationCard() {
             </div>
           </section>
 
-          {/* STEP 2: MVR REVIEW (TURNS RED IF DENIED/FLAGGED) */}
+          {/* STEP 2: MVR REVIEW */}
           <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
             formData.mvrStatus === 'denied' 
               ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
@@ -215,7 +254,7 @@ export default function DriverApplicationCard() {
             </div>
           </section>
 
-          {/* STEP 3: GENERAL MANAGER REVIEW (TURNS RED IF DENIED/FLAGGED) */}
+          {/* STEP 3: GENERAL MANAGER REVIEW */}
           <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
             formData.gmStatus === 'denied' 
               ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
