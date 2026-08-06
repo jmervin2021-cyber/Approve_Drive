@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "react": "^19.2.8",
+    "tailwind": "^4.0.0"
+  }
+}
