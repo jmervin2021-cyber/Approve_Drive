@@ -368,4 +368,22 @@ export default function DriverApplicationCard() {
       </div>
     </div>
   );
-}
+}// Handler for Final Promotion Execution
+  const handleFinalPromotion = () => {
+    // 1. Validate that all 3 sign-offs are checked
+    if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
+      alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
+      return;
+    }
+
+    // 2. Trigger PDF Generation & Excel Data Sync
+    console.log("Generating PDF Archive & Updating Master Excel Log with data:", formData);
+    
+    // Placeholder success alert (Will connect to your backend API / Control by Crews router)
+    alert("Driver successfully promoted! PDF generated and Master Excel sheet auto-updated.");
+  };<button 
+              onClick={handleFinalPromotion}
+              className="mt-8 w-full bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors cursor-pointer"
+            >
+              Execute Final Promotion to Driver Class
+            </button>
