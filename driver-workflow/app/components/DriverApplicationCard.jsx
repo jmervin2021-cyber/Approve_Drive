@@ -2,30 +2,25 @@
 import React, { useState } from 'react';
 
 export default function DriverApplicationCard() {
-  // Form State - Starts completely blank for live data entry
   const [formData, setFormData] = useState({
-    // Step 1
     employeeName: '',
     division: '',
     dispatcherName: '',
     dateOfHire: '',
     county: '',
     requestDate: '',
-    // Step 2
     mvrDate: '',
     mvrSupervisor: '',
-    mvrStatus: '', // 'approved' or 'denied'
+    mvrStatus: '', 
     mvrComments: '',
-    // Step 3
     gmReviewer: '',
     gmReviewDate: '',
     truckClassDate: '',
     truckClassScore: '',
     attendanceRecord: '',
     safetyRecord: '',
-    gmStatus: '', // 'approved' or 'denied'
+    gmStatus: '', 
     gmComments: '',
-    // Step 4 Sign-offs
     dispatcherSign: false,
     fleetSign: false,
     gmSign: false,
@@ -133,7 +128,7 @@ export default function DriverApplicationCard() {
             </div>
           </section>
 
-          {/* STEP 2: MVR REVIEW (TURNS RED IF DENIED/FLAGGED) */}
+          {/* STEP 2: MVR REVIEW */}
           <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
             formData.mvrStatus === 'denied' 
               ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
@@ -203,7 +198,7 @@ export default function DriverApplicationCard() {
             </div>
           </section>
 
-          {/* STEP 3: GENERAL MANAGER REVIEW (TURNS RED IF DENIED/FLAGGED) */}
+          {/* STEP 3: GENERAL MANAGER REVIEW */}
           <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
             formData.gmStatus === 'denied' 
               ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
@@ -238,7 +233,6 @@ export default function DriverApplicationCard() {
               </div>
             </div>
 
-            {/* Robust GM Sub-sections */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm mb-4">
               <div>
                 <label className="text-gray-400 block mb-1">Truck Class Date</label>
