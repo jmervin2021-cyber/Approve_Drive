@@ -26,14 +26,13 @@ export default function DriverApplicationCard() {
     gmSign: false,
   });
 
-  // State to track if the application has been successfully submitted/promoted
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
- const handleFinalPromotion = async () => {
+  const handleFinalPromotion = async () => {
     // Validate that all 3 sign-offs are checked
     if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
       alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
@@ -41,8 +40,7 @@ export default function DriverApplicationCard() {
     }
 
     try {
-      // Send data to our Node.js backend server
-      const response = await fetch('/api/promote-driver', { {
+      const response = await fetch('/api/promote-driver', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,18 +51,16 @@ export default function DriverApplicationCard() {
       const result = await response.json();
 
       if (result.success) {
-        // Transition to success screen with real data paths returned from server
         setIsSubmitted(true);
       } else {
         alert("Error executing promotion on server.");
       }
     } catch (error) {
       console.error("Connection error:", error);
-      alert("Could not connect to the Control by Crews server. Make sure server.js is running.");
+      alert("Could not connect to the Control by Crews server.");
     }
   };
 
-  // SUCCESS SCREEN VIEW (When all 3 approve and submit)
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-[#0A0E14] p-8 text-white font-sans flex items-center justify-center">
@@ -84,9 +80,7 @@ export default function DriverApplicationCard() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-400">Archived PDF:</span>
-              <a href="#download" onClick={(e) => e.preventDefault()} className="text-[#4ADE80] underline hover:text-green-400">
-                /archives/drivers/{formData.employeeName ? formData.employeeName.toLowerCase().replace(/\s+/g, '_') : 'driver'}_promotion.pdf
-              </a>
+              <span className="text-[#4ADE80] underline">/archives/drivers/promotion.pdf</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-400">Master Excel Log:</span>
@@ -105,7 +99,6 @@ export default function DriverApplicationCard() {
     );
   }
 
-  // STANDARD FORM VIEW
   return (
     <div className="min-h-screen bg-[#0A0E14] p-8 text-white font-sans">
       
