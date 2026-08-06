@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
@@ -97,4 +97,4 @@ export async function POST(request) {
     console.error("Error processing driver promotion:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
-}   
+}
