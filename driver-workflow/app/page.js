@@ -1,4 +1,4 @@
-import DriverApplicationCard from '../components/DriverApplicationCard';
+import DriverApplicationCard from './components/DriverApplicationCard';
 
 export default function Home() {
   return (
