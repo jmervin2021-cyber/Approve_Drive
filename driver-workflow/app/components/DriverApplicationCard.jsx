@@ -1,130 +1,365 @@
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 
 export default function DriverApplicationCard() {
+  const [formData, setFormData] = useState({
+    employeeName: '',
+    division: '',
+    dispatcherName: '',
+    dateOfHire: '',
+    county: '',
+    requestDate: '',
+    mvrDate: '',
+    mvrSupervisor: '',
+    mvrStatus: '', 
+    mvrComments: '',
+    gmReviewer: '',
+    gmReviewDate: '',
+    truckClassDate: '',
+    truckClassScore: '',
+    attendanceRecord: '',
+    safetyRecord: '',
+    gmStatus: '', 
+    gmComments: '',
+    dispatcherSign: false,
+    fleetSign: false,
+    gmSign: false,
+  });
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
-    <div className="min-h-screen bg-crews-asphalt p-8 text-white font-sans">
+    <div className="min-h-screen bg-[#0A0E14] p-8 text-white font-sans">
       
-      {/* HEADER SECTION */}
-      <div className="max-w-5xl mx-auto bg-crews-charcoal rounded-xl shadow-2xl border border-crews-slate overflow-hidden">
-        <div className="bg-crews-slate px-6 py-4 flex justify-between items-center border-b border-gray-600">
-          <div>
-            <h1 className="text-2xl font-bold tracking-wider">DRIVER APPLICATION RECORD</h1>
-            <p className="text-gray-400 text-sm mt-1">ID: #DA-2026-0412</p>
+      {/* HEADER SECTION WITH LOGO */}
+      <div className="max-w-5xl mx-auto bg-[#121821] rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
+        <div className="bg-[#1A222D] px-6 py-4 flex justify-between items-center border-b border-gray-800">
+          <div className="flex items-center gap-4">
+            {/* Logo integration */}
+            <img 
+              src="/logo.png" 
+              alt="Crews Control Logo" 
+              className="w-12 h-12 object-contain rounded-full bg-[#0A0E14] p-1 border border-[#22C55E]/40 shadow-md"
+            />
+            <div>
+              <h1 className="text-2xl font-bold tracking-wider text-gray-100">DRIVER APPLICATION RECORD</h1>
+              <p className="text-gray-400 text-sm mt-0.5">Control by Crews — Master Pipeline</p>
+            </div>
           </div>
-          <div className="bg-crews-yellow text-black px-4 py-2 rounded font-bold tracking-wide flex items-center gap-2 shadow-lg">
-            <span className="w-2 h-2 rounded-full bg-black animate-pulse"></span>
-            BOARD REVIEW REQUIRED
+          <div className={`px-4 py-2 rounded font-bold tracking-wide flex items-center gap-2 shadow-lg text-sm border ${
+            formData.mvrStatus === 'denied' || formData.gmStatus === 'denied'
+              ? 'bg-red-950/80 text-red-400 border-red-500/40 animate-pulse'
+              : 'bg-[#166534] text-[#4ADE80] border-[#22C55E]/30'
+          }`}>
+            <span className={`w-2.5 h-2.5 rounded-full ${
+              formData.mvrStatus === 'denied' || formData.gmStatus === 'denied' ? 'bg-red-500' : 'bg-[#4ADE80] animate-pulse'
+            }`}></span>
+            {formData.mvrStatus === 'denied' || formData.gmStatus === 'denied' ? 'BOARD REVIEW FLAGGED' : 'ACTIVE PIPELINE ENTRY'}
           </div>
         </div>
 
         <div className="p-8 space-y-8">
 
           {/* STEP 1: DISPATCHER REQUEST */}
-          <section className="border-l-4 border-crews-slate pl-6">
+          <section className="border-l-4 border-gray-700 pl-6">
             <h2 className="text-xl font-bold text-gray-300 mb-4 uppercase tracking-wide">Step 1: Application Request</h2>
-            <div className="grid grid-cols-3 gap-6 text-sm">
-              <div><span className="text-gray-500 block">Employee Name</span><span className="font-semibold text-lg">Marcus Vance</span></div>
-              <div><span className="text-gray-500 block">Division</span><span className="font-semibold text-lg">North Traffic Control</span></div>
-              <div><span className="text-gray-500 block">Requesting Dispatcher</span><span className="font-semibold text-lg">Sarah Jenkins</span></div>
-              <div><span className="text-gray-500 block">Date of Hire</span><span className="text-gray-200">03/15/2025</span></div>
-              <div><span className="text-gray-500 block">County of Residence</span><span className="text-gray-200">Allegheny County, PA</span></div>
-              <div><span className="text-gray-500 block">Date of Request</span><span className="text-gray-200">06/04/2026</span></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+              <div>
+                <label className="text-gray-400 block mb-1">Employee Name</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter employee name..." 
+                  value={formData.employeeName}
+                  onChange={(e) => handleChange('employeeName', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Division</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter division..." 
+                  value={formData.division}
+                  onChange={(e) => handleChange('division', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Requesting Dispatcher</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter dispatcher name..." 
+                  value={formData.dispatcherName}
+                  onChange={(e) => handleChange('dispatcherName', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Date of Hire</label>
+                <input 
+                  type="date" 
+                  value={formData.dateOfHire}
+                  onChange={(e) => handleChange('dateOfHire', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">County of Residence</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter county..." 
+                  value={formData.county}
+                  onChange={(e) => handleChange('county', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Date of Request</label>
+                <input 
+                  type="date" 
+                  value={formData.requestDate}
+                  onChange={(e) => handleChange('requestDate', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer"
+                />
+              </div>
             </div>
           </section>
 
-          {/* STEP 2: MVR REVIEW */}
-          <section className="border-l-4 border-crews-orange pl-6 bg-orange-900/10 p-4 rounded-r-lg">
-            <h2 className="text-xl font-bold text-crews-orange mb-4 uppercase tracking-wide flex items-center gap-2">
-              Step 2: MVR Review & Eligibility
+          {/* STEP 2: MVR REVIEW (TURNS RED IF DENIED/FLAGGED) */}
+          <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
+            formData.mvrStatus === 'denied' 
+              ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
+              : 'border-[#22C55E] bg-[#166534]/5'
+          }`}>
+            <h2 className={`text-xl font-bold mb-4 uppercase tracking-wide flex items-center justify-between ${
+              formData.mvrStatus === 'denied' ? 'text-red-400' : 'text-[#4ADE80]'
+            }`}>
+              <span>Step 2: MVR Review & Eligibility</span>
+              {formData.mvrStatus === 'denied' && <span className="text-xs bg-red-500 text-black px-2 py-0.5 rounded font-bold tracking-wider">FLAGGED REVIEW</span>}
             </h2>
-            <div className="grid grid-cols-2 gap-6 text-sm mb-4">
-              <div><span className="text-gray-500 block">Date MVR Processed</span><span className="font-semibold">06/05/2026</span></div>
-              <div><span className="text-gray-500 block">MVR Supervisor</span><span className="font-semibold">Tom Bradley (Fleet Manager)</span></div>
-            </div>
-            <div className="mb-4">
-              <span className="text-gray-500 block mb-2">MVR Determination</span>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed"><input type="radio" disabled /> Approved</label>
-                <label className="flex items-center gap-2 text-crews-red font-bold"><input type="radio" checked readOnly className="accent-crews-red" /> Denied (Flagged)</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-4">
+              <div>
+                <label className="text-gray-400 block mb-1">Date MVR Processed</label>
+                <input 
+                  type="date" 
+                  value={formData.mvrDate}
+                  onChange={(e) => handleChange('mvrDate', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">MVR Supervisor (Fleet Manager)</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter fleet manager name..." 
+                  value={formData.mvrSupervisor}
+                  onChange={(e) => handleChange('mvrSupervisor', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">MVR Determination</label>
+                <div className="flex gap-4 mt-2">
+                  <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="mvrStatus" 
+                      checked={formData.mvrStatus === 'approved'}
+                      onChange={() => handleChange('mvrStatus', 'approved')}
+                      className="accent-[#22C55E] w-4 h-4" 
+                    /> Approved
+                  </label>
+                  <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                    <input 
+                      type="radio" 
+                      name="mvrStatus" 
+                      checked={formData.mvrStatus === 'denied'}
+                      onChange={() => handleChange('mvrStatus', 'denied')}
+                      className="accent-red-500 w-4 h-4" 
+                    /> Denied (Flag)
+                  </label>
+                </div>
               </div>
             </div>
             <div>
-              <span className="text-gray-500 block mb-1">Fleet Manager Comments</span>
-              <div className="bg-crews-asphalt p-3 rounded border border-crews-slate text-gray-300 italic">
-                "Minor speeding infraction logged from 10 months ago within threshold, but system flagged secondary query review due to commercial insurance policy guidelines. Needs internal review before final clearance."
-              </div>
+              <label className="text-gray-400 block mb-1">Fleet Manager Comments</label>
+              <textarea 
+                rows="2"
+                placeholder="Enter MVR notes or flag details..."
+                value={formData.mvrComments}
+                onChange={(e) => handleChange('mvrComments', e.target.value)}
+                className={`w-full bg-[#0A0E14] border rounded p-3 text-white focus:outline-none text-sm ${
+                  formData.mvrStatus === 'denied' ? 'border-red-500/60 focus:border-red-500' : 'border-gray-700 focus:border-[#22C55E]'
+                }`}
+              />
             </div>
           </section>
 
-          {/* STEP 3: GENERAL MANAGER REVIEW */}
-          <section className="border-l-4 border-crews-slate pl-6">
-            <h2 className="text-xl font-bold text-gray-300 mb-4 uppercase tracking-wide">Step 3: Employee Performance Review</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
-              <div><span className="text-gray-500 block">Reviewing Supervisor</span><span className="font-semibold">Dave Miller (GM)</span></div>
-              <div><span className="text-gray-500 block">Date of Review</span><span className="font-semibold">06/06/2026</span></div>
-              <div><span className="text-gray-500 block">Truck Class Date</span><span className="font-semibold">06/07/2026</span></div>
-              <div><span className="text-gray-500 block">Class Test Score</span><span className="text-crews-green font-bold text-lg">92% / Pass</span></div>
-            </div>
+          {/* STEP 3: GENERAL MANAGER REVIEW (TURNS RED IF DENIED/FLAGGED) */}
+          <section className={`border-l-4 pl-6 p-4 rounded-r-lg transition-colors duration-300 ${
+            formData.gmStatus === 'denied' 
+              ? 'border-red-500 bg-red-950/20 shadow-[inset_0_0_15px_rgba(239,68,68,0.1)]' 
+              : 'border-gray-700 bg-transparent'
+          }`}>
+            <h2 className={`text-xl font-bold mb-4 uppercase tracking-wide flex items-center justify-between ${
+              formData.gmStatus === 'denied' ? 'text-red-400' : 'text-gray-300'
+            }`}>
+              <span>Step 3: Employee Performance Review</span>
+              {formData.gmStatus === 'denied' && <span className="text-xs bg-red-500 text-black px-2 py-0.5 rounded font-bold tracking-wider">FLAGGED REVIEW</span>}
+            </h2>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-4">
               <div>
-                <span className="text-gray-500 block mb-1">Attendance Record</span>
-                <input type="text" readOnly value="98% attendance, 0 unexcused absences" className="w-full bg-crews-asphalt border border-crews-slate rounded p-2 text-gray-200" />
+                <label className="text-gray-400 block mb-1">Reviewing Supervisor (General Manager)</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter GM name..." 
+                  value={formData.gmReviewer}
+                  onChange={(e) => handleChange('gmReviewer', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
               </div>
               <div>
-                <span className="text-gray-500 block mb-1">Safety Record</span>
-                <input type="text" readOnly value="Clean record, no safety infractions on active sites" className="w-full bg-crews-asphalt border border-crews-slate rounded p-2 text-gray-200" />
+                <label className="text-gray-400 block mb-1">Date of Review</label>
+                <input 
+                  type="date" 
+                  value={formData.gmReviewDate}
+                  onChange={(e) => handleChange('gmReviewDate', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer"
+                />
               </div>
             </div>
+
+            {/* Robust GM Sub-sections */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm mb-4">
+              <div>
+                <label className="text-gray-400 block mb-1">Truck Class Date</label>
+                <input 
+                  type="date" 
+                  value={formData.truckClassDate}
+                  onChange={(e) => handleChange('truckClassDate', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Truck Class Test Score</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. 92% / Pass" 
+                  value={formData.truckClassScore}
+                  onChange={(e) => handleChange('truckClassScore', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Attendance Record</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter attendance notes..." 
+                  value={formData.attendanceRecord}
+                  onChange={(e) => handleChange('attendanceRecord', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-gray-400 block mb-1">Safety Record</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter safety notes..." 
+                  value={formData.safetyRecord}
+                  onChange={(e) => handleChange('safetyRecord', e.target.value)}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none"
+                />
+              </div>
+            </div>
+
             <div className="mb-4">
-              <span className="text-gray-500 block mb-2">Review Determination</span>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-gray-400 cursor-not-allowed"><input type="radio" disabled /> Approved</label>
-                <label className="flex items-center gap-2 text-crews-red font-bold"><input type="radio" checked readOnly className="accent-crews-red" /> Denied (Flagged)</label>
+              <label className="text-gray-400 block mb-1">Review Determination</label>
+              <div className="flex gap-4 mt-2">
+                <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="gmStatus" 
+                    checked={formData.gmStatus === 'approved'}
+                    onChange={() => handleChange('gmStatus', 'approved')}
+                    className="accent-[#22C55E] w-4 h-4" 
+                  /> Approved
+                </label>
+                <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                  <input 
+                    type="radio" 
+                    name="gmStatus" 
+                    checked={formData.gmStatus === 'denied'}
+                    onChange={() => handleChange('gmStatus', 'denied')}
+                    className="accent-red-500 w-4 h-4" 
+                  /> Denied (Flag)
+                </label>
               </div>
             </div>
+
             <div>
-              <span className="text-gray-500 block mb-1">General Manager Comments</span>
-              <div className="bg-crews-asphalt p-3 rounded border border-crews-slate text-gray-300 italic">
-                "Marcus has solid attendance and passed the truck class training with a strong score. Minor flag on historical MVR is being brought to the 3-party board review meeting for final override consideration."
-              </div>
+              <label className="text-gray-400 block mb-1">General Manager Comments</label>
+              <textarea 
+                rows="2"
+                placeholder="Enter GM review comments..."
+                value={formData.gmComments}
+                onChange={(e) => handleChange('gmComments', e.target.value)}
+                className={`w-full bg-[#0A0E14] border rounded p-3 text-white focus:outline-none text-sm ${
+                  formData.gmStatus === 'denied' ? 'border-red-500/60 focus:border-red-500' : 'border-gray-700 focus:border-[#22C55E]'
+                }`}
+              />
             </div>
           </section>
 
-          {/* STEP 4: FINAL APPROVAL / OVERRIDE */}
-          <section className="bg-crews-slate/30 p-6 rounded-lg border border-crews-slate">
-            <h2 className="text-2xl font-bold text-white mb-2 uppercase tracking-wide">Step 4: Final Collaborative Sign-Off</h2>
-            <p className="text-gray-400 mb-6 text-sm">All three parties must provide digital signature to authorize driver status override.</p>
+          {/* STEP 4: FINAL APPROVAL / SIGN-OFFS */}
+          <section className="bg-[#1A222D]/60 p-6 rounded-lg border border-gray-800">
+            <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">Step 4: Final Collaborative Sign-Off</h2>
+            <p className="text-gray-400 mb-6 text-sm">All three parties must verify and check off to execute final promotion to Driver Class.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Dispatcher Sign-off */}
-              <div className="bg-crews-asphalt p-4 rounded border border-crews-slate hover:border-crews-orange transition-colors">
-                <span className="text-gray-500 block text-xs uppercase mb-2">Dispatcher</span>
+              <div className="bg-[#0A0E14] p-4 rounded border border-gray-800 hover:border-[#22C55E] transition-colors">
+                <span className="text-gray-400 block text-xs uppercase mb-2">Dispatcher Sign-Off</span>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" className="w-5 h-5 accent-crews-orange" />
-                  <span className="font-bold text-gray-200">Sarah Jenkins</span>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.dispatcherSign}
+                    onChange={(e) => handleChange('dispatcherSign', e.target.checked)}
+                    className="w-5 h-5 accent-[#22C55E]" 
+                  />
+                  <span className="font-bold text-gray-200">Dispatcher Approval</span>
                 </label>
               </div>
 
-              {/* Fleet Manager Sign-off */}
-              <div className="bg-crews-asphalt p-4 rounded border border-crews-slate hover:border-crews-orange transition-colors">
-                <span className="text-gray-500 block text-xs uppercase mb-2">Fleet Manager</span>
+              <div className="bg-[#0A0E14] p-4 rounded border border-gray-800 hover:border-[#22C55E] transition-colors">
+                <span className="text-gray-400 block text-xs uppercase mb-2">Fleet Manager Sign-Off</span>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" className="w-5 h-5 accent-crews-orange" />
-                  <span className="font-bold text-gray-200">Tom Bradley</span>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.fleetSign}
+                    onChange={(e) => handleChange('fleetSign', e.target.checked)}
+                    className="w-5 h-5 accent-[#22C55E]" 
+                  />
+                  <span className="font-bold text-gray-200">Fleet Manager Approval</span>
                 </label>
               </div>
 
-              {/* GM Sign-off */}
-              <div className="bg-crews-asphalt p-4 rounded border border-crews-slate hover:border-crews-orange transition-colors">
-                <span className="text-gray-500 block text-xs uppercase mb-2">General Manager</span>
+              <div className="bg-[#0A0E14] p-4 rounded border border-gray-800 hover:border-[#22C55E] transition-colors">
+                <span className="text-gray-400 block text-xs uppercase mb-2">General Manager Sign-Off</span>
                 <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" className="w-5 h-5 accent-crews-orange" />
-                  <span className="font-bold text-gray-200">Dave Miller</span>
+                  <input 
+                    type="checkbox" 
+                    checked={formData.gmSign}
+                    onChange={(e) => handleChange('gmSign', e.target.checked)}
+                    className="w-5 h-5 accent-[#22C55E]" 
+                  />
+                  <span className="font-bold text-gray-200">General Manager Approval</span>
                 </label>
               </div>
             </div>
 
-            <button className="mt-8 w-full bg-crews-orange hover:bg-orange-600 text-white font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors">
+            <button className="mt-8 w-full bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors cursor-pointer">
               Execute Final Promotion to Driver Class
             </button>
           </section>
