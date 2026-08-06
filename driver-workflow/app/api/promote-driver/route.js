@@ -3,26 +3,50 @@ import * as XLSX from 'xlsx';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 export async function POST(request) {
   try {
     const formData = await request.json();
 
-    const timestamp = Date.now();
-    const safeName = formData.employeeName ? formData.employeeName.toLowerCase().replace(/\s+/g, '_') : 'driver';
-    
-    const tempDir = os.tmpdir();
-    const excelFilePath = path.join(tempDir, `ControlByCrews_Master_${timestamp}.xlsx`);
+    // Define absolute path to the data folder inside driver-workflow
+    const dataDir = path.join(process.cwd(), 'data');
     const archiveDir = path.join(process.cwd(), 'public', 'archives', 'drivers');
 
+    // Automatically create folders if they don't exist
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
     if (!fs.existsSync(archiveDir)) {
       fs.mkdirSync(archiveDir, { recursive: true });
     }
 
-    // Create workbook record
-    const workbook = XLSX.utils.book_new();
-    const driverData = [{
+    const excelFilePath = path.join(dataDir, 'ControlByCrews_Master_Drivers.xlsx');
+
+    let workbook;
+    let worksheet;
+    
+    if (!fs.existsSync(excelFilePath)) {
+      workbook = XLSX.utils.book_new();
+      const initialData = [{
+        "Employee Name": "",
+        "Division": "",
+        "Date of Hire": "",
+        "County of Residence": "",
+        "Test Score": "",
+        "Driver Class Date": "",
+        "Attendance Record": "",
+        "Safety Record": "",
+        "Approved/Denied": "",
+        "Comments": ""
+      }];
+      worksheet = XLSX.utils.json_to_sheet(initialData);
+      XLSX.utils.book_append_sheet(workbook, worksheet, "MasterLog");
+    } else {
+      workbook = XLSX.readFile(excelFilePath);
+      worksheet = workbook.Sheets['MasterLog'] || workbook.Sheets[workbook.SheetNames[0]];
+    }
+
+    const newDriverRow = {
       "Employee Name": formData.employeeName || "N/A",
       "Division": formData.division || "N/A",
       "Date of Hire": formData.dateOfHire || "N/A",
@@ -33,13 +57,14 @@ export async function POST(request) {
       "Safety Record": formData.safetyRecord || "N/A",
       "Approved/Denied": "Approved (All Sign-offs Verified)",
       "Comments": `MVR: ${formData.mvrComments || 'None'} | GM: ${formData.gmComments || 'None'}`
-    }];
+    };
 
-    const worksheet = XLSX.utils.json_to_sheet(driverData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, "PromotionLog");
+    XLSX.utils.sheet_add_json(worksheet, [newDriverRow], { skipHeader: true, origin: -1 });
     XLSX.writeFile(workbook, excelFilePath);
 
     // Generate PDF archive
+    const timestamp = Date.now();
+    const safeName = formData.employeeName ? formData.employeeName.toLowerCase().replace(/\s+/g, '_') : 'driver';
     const pdfFileName = `${safeName}_${timestamp}_promotion.pdf`;
     const pdfFullPath = path.join(archiveDir, pdfFileName);
 
