@@ -33,15 +33,35 @@ export default function DriverApplicationCard() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFinalPromotion = () => {
+ const handleFinalPromotion = async () => {
     // Validate that all 3 sign-offs are checked
     if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
       alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
       return;
     }
 
-    // Switch to success confirmation screen
-    setIsSubmitted(true);
+    try {
+      // Send data to our Node.js backend server
+      const response = await fetch('http://localhost:5000/api/promote-driver', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Transition to success screen with real data paths returned from server
+        setIsSubmitted(true);
+      } else {
+        alert("Error executing promotion on server.");
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+      alert("Could not connect to the Control by Crews server. Make sure server.js is running.");
+    }
   };
 
   // SUCCESS SCREEN VIEW (When all 3 approve and submit)
