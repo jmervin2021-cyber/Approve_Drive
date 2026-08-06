@@ -76,12 +76,32 @@ export default function DriverApplicationCard() {
     });
   };
 
-  const handleFinalPromotion = () => {
+  const handleFinalPromotion = async () => {
     if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
       alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
       return;
     }
-    setFormData((prev) => ({ ...prev, pipelineStage: 'completed' }));
+
+    try {
+      const response = await fetch('/api/promote-driver', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setFormData((prev) => ({ ...prev, pipelineStage: 'completed' }));
+      } else {
+        alert("Server error: " + (result.error || "Could not execute promotion."));
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+      alert("Could not connect to the Control by Crews server.");
+    }
   };
 
   if (formData.pipelineStage === 'completed') {
@@ -95,6 +115,22 @@ export default function DriverApplicationCard() {
           <p className="text-gray-300 text-sm">
             All three approvals have been logged. Master pipeline and Excel records updated.
           </p>
+          
+          <div className="bg-[#0A0E14] border border-gray-800 p-4 rounded-lg text-left space-y-3">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Employee:</span>
+              <span className="font-bold text-white">{formData.employeeName || "Marcus Vance"}</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Archived PDF:</span>
+              <span className="text-[#4ADE80] underline">/archives/drivers/promotion.pdf</span>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-400">Master Excel Log:</span>
+              <span className="text-[#4ADE80] font-mono text-xs">ControlByCrews_Master_Drivers.xlsx (Updated)</span>
+            </div>
+          </div>
+
           <button 
             onClick={() => setFormData({
               employeeName: '', division: '', dispatcherName: '', dateOfHire: '', county: '', requestDate: '',
@@ -314,7 +350,7 @@ export default function DriverApplicationCard() {
           )}
 
           {/* STEP 3: GENERAL MANAGER PERFORMANCE REVIEW */}
-          {(formData.pipelineStage === 'gm_review' || formData.pipelineStage === 'completed') && (
+          {formData.pipelineStage === 'gm_review' && (
             <section className="border-l-4 border-gray-700 bg-transparent pl-6 p-4 rounded-r-lg">
               <h2 className="text-xl font-bold mb-4 uppercase tracking-wide text-gray-300">Step 3: Employee Performance Review (GM)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-4">
@@ -419,7 +455,7 @@ export default function DriverApplicationCard() {
           )}
 
           {/* STEP 4: FINAL COLLABORATIVE SIGN-OFF */}
-          {(formData.pipelineStage === 'gm_review' || formData.pipelineStage === 'completed') && (
+          {formData.pipelineStage === 'gm_review' && (
             <section className="bg-[#1A222D]/60 p-6 rounded-lg border border-gray-800">
               <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">Step 4: Final Collaborative Sign-Off</h2>
               <p className="text-gray-400 mb-6 text-sm">All three parties must verify and check off to execute final promotion to Driver Class.</p>
@@ -468,30 +504,14 @@ export default function DriverApplicationCard() {
               <button 
                 onClick={handleFinalPromotion}
                 className="mt-8 w-full bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold py-4 rounded shadow-lg uppercase tracking-widest transition-colors cursor-pointer"
-              >const handleFinalPromotion = async () => {
-    if (!formData.dispatcherSign || !formData.fleetSign || !formData.gmSign) {
-      alert("All three parties (Dispatcher, Fleet Manager, and General Manager) must sign off before executing final promotion.");
-      return;
-    }
+              >
+                Execute Final Promotion to Driver Class
+              </button>
+            </section>
+          )}
 
-    try {
-      const response = await fetch('/api/promote-driver', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setFormData((prev) => ({ ...prev, pipelineStage: 'completed' }));
-      } else {
-        alert("Server error: " + (result.error || "Could not execute promotion."));
-      }
-    } catch (error) {
-      console.error("Connection error:", error);
-      alert("Could not connect to the Control by Crews server.");
-    }
-  };
+        </div>
+      </div>
+    </div>
+  );
+}
