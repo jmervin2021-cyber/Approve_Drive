@@ -11,16 +11,11 @@ export async function POST(request) {
     const dataDir = path.join(process.cwd(), 'data');
     const archiveDir = path.join(process.cwd(), 'public', 'archives', 'drivers');
 
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    if (!fs.existsSync(archiveDir)) {
-      fs.mkdirSync(archiveDir, { recursive: true });
-    }
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });
 
     const excelFilePath = path.join(dataDir, 'ControlByCrews_Master_Drivers.xlsx');
 
-    // Initialize or read Excel workbook
     let workbook;
     let worksheet;
     
@@ -45,7 +40,6 @@ export async function POST(request) {
       worksheet = workbook.Sheets['MasterLog'] || workbook.Sheets[workbook.SheetNames[0]];
     }
 
-    // Prepare Excel row payload
     const newDriverRow = {
       "Employee Name": formData.employeeName || "N/A",
       "Division": formData.division || "N/A",
@@ -59,11 +53,9 @@ export async function POST(request) {
       "Comments": `MVR: ${formData.mvrComments || 'None'} | GM: ${formData.gmComments || 'None'}`
     };
 
-    // Append row and save Excel file
     XLSX.utils.sheet_add_json(worksheet, [newDriverRow], { skipHeader: true, origin: -1 });
     XLSX.writeFile(workbook, excelFilePath);
 
-    // Generate PDF using a Promise wrapper to catch stream completion errors
     const timestamp = Date.now();
     const safeName = formData.employeeName ? formData.employeeName.toLowerCase().replace(/\s+/g, '_') : 'driver';
     const pdfFileName = `${safeName}_${timestamp}_promotion.pdf`;
@@ -77,7 +69,6 @@ export async function POST(request) {
       stream.on('error', reject);
 
       doc.pipe(stream);
-
       doc.fontSize(20).text('CONTROL BY CREWS', { align: 'center' });
       doc.fontSize(14).text('Official Driver Class Promotion Record', { align: 'center' });
       doc.moveDown();
@@ -97,7 +88,6 @@ export async function POST(request) {
       doc.text(`--- MANAGEMENT COMMENTS ---`);
       doc.text(`Fleet Manager: ${formData.mvrComments || 'None'}`);
       doc.text(`General Manager: ${formData.gmComments || 'None'}`);
-      
       doc.end();
     });
 
