@@ -14,15 +14,10 @@ export default function DriverApplicationCard() {
     pipelineStage: 'dispatch_draft', 
     mvrDate: '',
     mvrSupervisor: '',
-    fleetManagerEmail: '',
     mvrStatus: '', 
-    movingViolations: 0,
-    accidents: 0,
-    duiDwi: false,
     mvrComments: '',
     gmReviewer: '',
     gmReviewDate: '',
-    gmEmail: '',
     truckClassDate: '',
     truckClassScore: '',
     attendanceRecord: '',
@@ -40,36 +35,7 @@ export default function DriverApplicationCard() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Matrix calculation algorithm based on the USI Insurance Services table
-  const calculateMvrMatrix = (violations, accidents, hasDui) => {
-    if (hasDui) return { status: 'Prohibited', color: 'bg-red-600 text-white border-red-500' };
-    
-    const v = parseInt(violations) || 0;
-    const a = parseInt(accidents) || 0;
-
-    if (v >= 5 || a >= 4 || v > 5 || a > 3) return { status: 'Prohibited', color: 'bg-red-600 text-white border-red-500' };
-
-    const grid = {
-      0: { 0: 'Clear', 1: 'Acceptable', 2: 'Borderline', 3: 'Prohibited' },
-      1: { 0: 'Acceptable', 1: 'Acceptable', 2: 'Borderline', 3: 'Prohibited' },
-      2: { 0: 'Acceptable', 1: 'Borderline', 2: 'Prohibited', 3: 'Prohibited' },
-      3: { 0: 'Borderline', 1: 'Prohibited', 2: 'Prohibited', 3: 'Prohibited' },
-      4: { 0: 'Prohibited', 1: 'Prohibited', 2: 'Prohibited', 3: 'Prohibited' },
-      5: { 0: 'Prohibited', 1: 'Prohibited', 2: 'Prohibited', 3: 'Prohibited' },
-    };
-
-    const row = grid[Math.min(v, 5)];
-    const result = row ? (row[Math.min(a, 3)] || 'Prohibited') : 'Prohibited';
-
-    if (result === 'Clear') return { status: 'Clear', color: 'bg-emerald-800 text-emerald-200 border-emerald-600' };
-    if (result === 'Acceptable') return { status: 'Acceptable', color: 'bg-emerald-600 text-white border-emerald-500' };
-    if (result === 'Borderline') return { status: 'Borderline (Yellow - Review Needed)', color: 'bg-amber-500 text-black border-amber-400 font-bold' };
-    return { status: 'Prohibited (Red - Disqualified / Meeting Required)', color: 'bg-red-600 text-white border-red-500 font-bold animate-pulse' };
-  };
-
-  const currentMatrixResult = calculateMvrMatrix(formData.movingViolations, formData.accidents, formData.duiDwi);
-
-  const handleMoveToMVR = async () => {
+  const handleMoveToMVR = () => {
     if (!formData.employeeName || !formData.division || !formData.dispatcherName) {
       alert("Please fill out Employee Name, Division, and Requesting Dispatcher before moving to MVR.");
       return;
@@ -78,64 +44,37 @@ export default function DriverApplicationCard() {
     setFormData((prev) => ({ ...prev, pipelineStage: 'mvr_review' }));
     setNotification({
       type: 'fleet_alert',
-      message: `🔔 NOTIFICATION TO FLEET MANAGER: New driver application request submitted for ${formData.employeeName} (${formData.division}).`
+      message: `🔔 NOTIFICATION TO FLEET MANAGER: New driver application request submitted for ${formData.employeeName} (${formData.division}). Please review Section 2 (MVR Info).`
     });
-
-    // Trigger Email Notification API
-    if (formData.fleetManagerEmail) {
-      try {
-        await fetch('/api/notify-manager', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            recipientEmail: formData.fleetManagerEmail,
-            stepName: 'Step 2: MVR Matrix Review',
-            employeeName: formData.employeeName,
-            status: 'Pending MVR Evaluation',
-          }),
-        });
-      } catch (err) {
-        console.error("Email notification dispatch error:", err);
-      }
-    }
   };
 
-  const handleMVRSubmission = async () => {
-    if (!formData.mvrSupervisor || !formData.licenseNumber || !formData.last4SSN) {
-      alert("Please complete Fleet Manager name, License #, and Last 4 of SSN.");
+  const handleMVRSubmission = () => {
+    if (!formData.mvrStatus || !formData.mvrSupervisor || !formData.licenseNumber || !formData.last4SSN) {
+      alert("Please complete MVR Determination, enter Fleet Manager name, License #, and Last 4 of SSN.");
       return;
     }
 
-    setFormData((prev) => ({ ...prev, pipelineStage: 'holding_truck_class', mvrStatus: currentMatrixResult.status }));
-    setNotification({
-      type: 'holding_alert',
-      message: `✅ MVR EVALUATED: Status logged as [${currentMatrixResult.status}]. Application is now holding in Dispatch pending Truck Class evaluation.`
-    });
+    if (formData.mvrStatus === 'denied') {
+      setFormData((prev) => ({ ...prev, pipelineStage: 'dispatch_draft' }));
+      setNotification({
+        type: 'dispatch_alert',
+        message: `⚠️ MVR DENIED: Application for ${formData.employeeName} has been returned to Dispatch with an MVR flag.`
+      });
+    } else {
+      setFormData((prev) => ({ ...prev, pipelineStage: 'holding_truck_class' }));
+      setNotification({
+        type: 'holding_alert',
+        message: `✅ MVR APPROVED: Application for ${formData.employeeName} has cleared MVR. It is now holding in Dispatch pending Truck Class evaluation.`
+      });
+    }
   };
 
-  const handleTruckClassComplete = async () => {
+  const handleTruckClassComplete = () => {
     setFormData((prev) => ({ ...prev, pipelineStage: 'gm_review' }));
     setNotification({
       type: 'fleet_alert',
       message: `🔔 NOTIFICATION TO GENERAL MANAGER: Truck class complete and verified. Application moved to GM Performance Review (Step 3).`
     });
-
-    if (formData.gmEmail) {
-      try {
-        await fetch('/api/notify-manager', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            recipientEmail: formData.gmEmail,
-            stepName: 'Step 3: GM Review & Final Sign-Off',
-            employeeName: formData.employeeName,
-            status: currentMatrixResult.status,
-          }),
-        });
-      } catch (err) {
-        console.error("GM email dispatch error:", err);
-      }
-    }
   };
 
   const handleFinalPromotion = async () => {
@@ -147,8 +86,10 @@ export default function DriverApplicationCard() {
     try {
       const response = await fetch('/api/promote-driver', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, finalMvrEvaluation: currentMatrixResult.status }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
       const result = await response.json();
@@ -182,8 +123,8 @@ export default function DriverApplicationCard() {
               <span className="font-bold text-white">{formData.employeeName || "Marcus Vance"}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">Final MVR Standing:</span>
-              <span className="font-bold text-amber-400">{currentMatrixResult.status}</span>
+              <span className="text-gray-400">Archived PDF:</span>
+              <span className="text-[#4ADE80] underline">/archives/drivers/promotion.pdf</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-400">Master Excel Log:</span>
@@ -194,9 +135,9 @@ export default function DriverApplicationCard() {
           <button 
             onClick={() => setFormData({
               employeeName: '', division: '', dispatcherName: '', dateOfHire: '', county: '', requestDate: '',
-              licenseNumber: '', last4SSN: '', pipelineStage: 'dispatch_draft', mvrDate: '', mvrSupervisor: '',
-              fleetManagerEmail: '', mvrStatus: '', movingViolations: 0, accidents: 0, duiDwi: false, mvrComments: '',
-              gmReviewer: '', gmReviewDate: '', gmEmail: '', truckClassDate: '', truckClassScore: '', attendanceRecord: '',
+              licenseNumber: '', last4SSN: '',
+              pipelineStage: 'dispatch_draft', mvrDate: '', mvrSupervisor: '', mvrStatus: '', mvrComments: '',
+              gmReviewer: '', gmReviewDate: '', truckClassDate: '', truckClassScore: '', attendanceRecord: '',
               safetyRecord: '', gmStatus: '', gmComments: '', dispatcherSign: false, fleetSign: false, gmSign: false
             })}
             className="text-gray-400 hover:text-white text-sm underline mt-4 block mx-auto cursor-pointer"
@@ -208,16 +149,14 @@ export default function DriverApplicationCard() {
     );
   }
 
-  const isProhibitedOrFlagged = currentMatrixResult.status.includes('Prohibited');
-
   return (
     <div className="min-h-screen bg-[#0A0E14] p-8 text-white font-sans">
-      <div className={`max-w-5xl mx-auto bg-[#121821] rounded-xl shadow-2xl border transition-all duration-300 overflow-hidden ${isProhibitedOrFlagged && formData.pipelineStage !== 'dispatch_draft' && formData.pipelineStage !== 'mvr_review' ? 'border-red-600 ring-2 ring-red-600/50' : 'border-gray-800'}`}>
+      <div className="max-w-5xl mx-auto bg-[#121821] rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
         
         {/* HEADER & PIPELINE BANNER */}
         <div className="bg-[#1A222D] px-6 py-4 flex justify-between items-center border-b border-gray-800">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[#0A0E14] border border-[#22C55E]/40 flex items-center justify-center overflow-hidden shadow-md p-1">
+            <div className="w-12 h-12 rounded-full bg-[#0A0E14] border border-[#22C55E]/40 flex items-center justify-center overflow-hidden shadow-md p-1">
               <img src="/logo.png" alt="Crews Control Logo" className="w-full h-full object-cover scale-110" />
             </div>
             <div>
@@ -231,12 +170,7 @@ export default function DriverApplicationCard() {
           </div>
         </div>
 
-        {isProhibitedOrFlagged && formData.pipelineStage !== 'dispatch_draft' && formData.pipelineStage !== 'mvr_review' && (
-          <div className="bg-red-600 text-white px-6 py-3 font-bold text-center tracking-wider uppercase text-sm border-b border-red-500 animate-pulse">
-            ⚠️ WARNING: MVR Matrix Determination is Prohibited / Disqualified. GM Meeting Required Before Approval.
-          </div>
-        )}
-
+        {/* LIVE NOTIFICATION BANNER */}
         {notification && (
           <div className="m-6 p-4 rounded-lg border text-sm font-semibold flex items-center justify-between bg-emerald-950/40 border-emerald-500/50 text-emerald-300">
             <span>{notification.message}</span>
@@ -249,7 +183,7 @@ export default function DriverApplicationCard() {
           {/* STEP 1: DISPATCHER REQUEST */}
           <section className="border-l-4 border-gray-700 pl-6">
             <h2 className="text-xl font-bold text-gray-300 mb-4 uppercase tracking-wide">Step 1: Dispatcher Application Request</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
               <div>
                 <label className="text-gray-400 block mb-1">Employee Name</label>
                 <input 
@@ -316,36 +250,6 @@ export default function DriverApplicationCard() {
               </div>
             </div>
 
-            {/* Dropdown for selecting Fleet Manager routing email */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-              <div>
-                <label className="text-gray-400 block mb-1">Assign Fleet Manager (For Email Notification)</label>
-                <select
-                  value={formData.fleetManagerEmail}
-                  onChange={(e) => handleChange('fleetManagerEmail', e.target.value)}
-                  disabled={formData.pipelineStage !== 'dispatch_draft'}
-                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50 cursor-pointer"
-                >
-                  <option value="">Select Fleet Manager...</option>
-                  <option value="fleet1@crewscontrol.com">John Mervin (Fleet Ops Lead)</option>
-                  <option value="fleet2@crewscontrol.com">Sarah Jenkins (Fleet Safety)</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-gray-400 block mb-1">Assign General Manager (For Final Stage Notification)</label>
-                <select
-                  value={formData.gmEmail}
-                  onChange={(e) => handleChange('gmEmail', e.target.value)}
-                  disabled={formData.pipelineStage !== 'dispatch_draft'}
-                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50 cursor-pointer"
-                >
-                  <option value="">Select General Manager...</option>
-                  <option value="gm1@crewscontrol.com">Dave Wallace (General Manager)</option>
-                  <option value="gm2@crewscontrol.com">Mike Ross (Operations GM)</option>
-                </select>
-              </div>
-            </div>
-
             {formData.pipelineStage === 'dispatch_draft' && (
               <button 
                 onClick={handleMoveToMVR}
@@ -356,134 +260,111 @@ export default function DriverApplicationCard() {
             )}
           </section>
 
-          {/* STEP 2: MVR REVIEW & MATRIX */}
-          <section className="border-l-4 border-[#22C55E] bg-[#166534]/5 pl-6 p-4 rounded-r-lg">
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-wide text-[#4ADE80]">Step 2: MVR Matrix Evaluation (Fleet Manager)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm mb-4">
-              <div>
-                <label className="text-gray-400 block mb-1">Date MVR Processed</label>
-                <input 
-                  type="date" 
-                  value={formData.mvrDate}
-                  onChange={(e) => handleChange('mvrDate', e.target.value)}
-                  disabled={formData.pipelineStage !== 'mvr_review'}
-                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="text-gray-400 block mb-1">MVR Supervisor (Fleet Manager)</label>
-                <input 
-                  type="text" 
-                  placeholder="Enter fleet manager name..." 
-                  value={formData.mvrSupervisor}
-                  onChange={(e) => handleChange('mvrSupervisor', e.target.value)}
-                  disabled={formData.pipelineStage !== 'mvr_review'}
-                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="text-gray-400 block mb-1">Driver License Number</label>
-                <input 
-                  type="text" 
-                  placeholder="Enter license #..." 
-                  value={formData.licenseNumber}
-                  onChange={(e) => handleChange('licenseNumber', e.target.value)}
-                  disabled={formData.pipelineStage !== 'mvr_review'}
-                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="text-gray-400 block mb-1">Last 4 of SSN</label>
-                <input 
-                  type="text" 
-                  maxLength="4"
-                  placeholder="1234" 
-                  value={formData.last4SSN}
-                  onChange={(e) => handleChange('last4SSN', e.target.value)}
-                  disabled={formData.pipelineStage !== 'mvr_review'}
-                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50 font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-[#0A0E14] p-4 rounded-lg border border-gray-800 mb-4">
-              <div>
-                <label className="text-gray-400 block mb-1 text-xs uppercase font-bold">Moving Violations (Past 5 Years)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  max="10"
-                  value={formData.movingViolations}
-                  onChange={(e) => handleChange('movingViolations', e.target.value)}
-                  disabled={formData.pipelineStage !== 'mvr_review'}
-                  className="w-full bg-[#121821] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="text-gray-400 block mb-1 text-xs uppercase font-bold">Accidents (Past 5 Years)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  max="10"
-                  value={formData.accidents}
-                  onChange={(e) => handleChange('accidents', e.target.value)}
-                  disabled={formData.pipelineStage !== 'mvr_review'}
-                  className="w-full bg-[#121821] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50"
-                />
-              </div>
-              <div>
-                <label className="text-gray-400 block mb-1 text-xs uppercase font-bold text-red-400">DUI / DWI / Death by Vehicle</label>
-                <label className="flex items-center gap-2 mt-3 cursor-pointer">
+          {/* STEP 2: MVR REVIEW (FLEET MANAGER) - HIDDEN UNTIL STAGE REACHED */}
+          {formData.pipelineStage !== 'dispatch_draft' && (
+            <section className="border-l-4 border-[#22C55E] bg-[#166534]/5 pl-6 p-4 rounded-r-lg">
+              <h2 className="text-xl font-bold mb-4 uppercase tracking-wide text-[#4ADE80]">Step 2: MVR Review & Eligibility (Fleet Manager)</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-4">
+                <div>
+                  <label className="text-gray-400 block mb-1">Date MVR Processed</label>
                   <input 
-                    type="checkbox" 
-                    checked={formData.duiDwi}
-                    onChange={(e) => handleChange('duiDwi', e.target.checked)}
+                    type="date" 
+                    value={formData.mvrDate}
+                    onChange={(e) => handleChange('mvrDate', e.target.value)}
                     disabled={formData.pipelineStage !== 'mvr_review'}
-                    className="accent-red-600 w-5 h-5"
+                    className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none cursor-pointer disabled:opacity-50"
                   />
-                  <span className="text-sm font-bold text-red-300">1 or More (Automatic Prohibited)</span>
-                </label>
+                </div>
+                <div>
+                  <label className="text-gray-400 block mb-1">MVR Supervisor (Fleet Manager)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Enter fleet manager name..." 
+                    value={formData.mvrSupervisor}
+                    onChange={(e) => handleChange('mvrSupervisor', e.target.value)}
+                    disabled={formData.pipelineStage !== 'mvr_review'}
+                    className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-400 block mb-1">Driver License Number</label>
+                  <input 
+                    type="text" 
+                    placeholder="Enter license #..." 
+                    value={formData.licenseNumber}
+                    onChange={(e) => handleChange('licenseNumber', e.target.value)}
+                    disabled={formData.pipelineStage !== 'mvr_review'}
+                    className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-400 block mb-1">Last 4 of SSN</label>
+                  <input 
+                    type="text" 
+                    maxLength="4"
+                    placeholder="1234" 
+                    value={formData.last4SSN}
+                    onChange={(e) => handleChange('last4SSN', e.target.value)}
+                    disabled={formData.pipelineStage !== 'mvr_review'}
+                    className="w-full bg-[#0A0E14] border border-gray-700 rounded p-2.5 text-white focus:border-[#22C55E] focus:outline-none disabled:opacity-50 font-mono"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-gray-400 block mb-1">MVR Determination</label>
+                  <div className="flex gap-4 mt-2">
+                    <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="mvrStatus" 
+                        checked={formData.mvrStatus === 'approved'}
+                        onChange={() => handleChange('mvrStatus', 'approved')}
+                        disabled={formData.pipelineStage !== 'mvr_review'}
+                        className="accent-[#22C55E] w-4 h-4" 
+                      /> Approved
+                    </label>
+                    <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="mvrStatus" 
+                        checked={formData.mvrStatus === 'denied'}
+                        onChange={() => handleChange('mvrStatus', 'denied')}
+                        disabled={formData.pipelineStage !== 'mvr_review'}
+                        className="accent-red-500 w-4 h-4" 
+                      /> Denied (Flag)
+                    </label>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            <div className="mb-4 flex items-center justify-between bg-[#1A222D] p-4 rounded-lg border border-gray-700">
-              <span className="text-sm text-gray-300 font-bold uppercase">Automated Insurance Matrix Determination:</span>
-              <span className={`px-4 py-1.5 rounded text-sm border shadow ${currentMatrixResult.color}`}>
-                {currentMatrixResult.status}
-              </span>
-            </div>
-
-            <div>
-              <label className="text-gray-400 block mb-1">Fleet Manager Comments</label>
-              <textarea 
-                rows="2"
-                placeholder="Enter MVR insurance notes or discussion flags..."
-                value={formData.mvrComments}
-                onChange={(e) => handleChange('mvrComments', e.target.value)}
-                disabled={formData.pipelineStage !== 'mvr_review'}
-                className="w-full bg-[#0A0E14] border border-gray-700 rounded p-3 text-white focus:outline-none text-sm focus:border-[#22C55E] disabled:opacity-50"
-              />
-            </div>
-
-            {formData.pipelineStage === 'mvr_review' && (
-              <button 
-                onClick={handleMVRSubmission}
-                className="mt-6 bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold px-6 py-3 rounded text-sm uppercase tracking-wider transition-colors cursor-pointer"
-              >
-                Submit MVR Matrix Decision (Proceed to Dispatch Hold)
-              </button>
-            )}
-          </section>
-
-          {/* HOLDING STATUS */}
-          {formData.pipelineStage === 'holding_truck_class' && (
-            <div className={`p-6 rounded-lg border text-center space-y-4 ${isProhibitedOrFlagged ? 'bg-red-950/30 border-red-500/60' : 'bg-[#1A222D] border-amber-500/40'}`}>
               <div>
-                <h3 className={`font-bold text-lg uppercase tracking-wide ${isProhibitedOrFlagged ? 'text-red-400 animate-pulse' : 'text-amber-400'}`}>
-                  Holding in Dispatch (Pending Truck Class) {isProhibitedOrFlagged ? '— [FLAGGED FOR GM MEETING]' : ''}
-                </h3>
+                <label className="text-gray-400 block mb-1">Fleet Manager Comments</label>
+                <textarea 
+                  rows="2"
+                  placeholder="Enter MVR notes or flag details..."
+                  value={formData.mvrComments}
+                  onChange={(e) => handleChange('mvrComments', e.target.value)}
+                  disabled={formData.pipelineStage !== 'mvr_review'}
+                  className="w-full bg-[#0A0E14] border border-gray-700 rounded p-3 text-white focus:outline-none text-sm focus:border-[#22C55E] disabled:opacity-50"
+                />
+              </div>
+
+              {formData.pipelineStage === 'mvr_review' && (
+                <button 
+                  onClick={handleMVRSubmission}
+                  className="mt-6 bg-[#166534] hover:bg-[#15803d] text-[#4ADE80] border border-[#22C55E]/40 font-bold px-6 py-3 rounded text-sm uppercase tracking-wider transition-colors cursor-pointer"
+                >
+                  Submit MVR Decision (Update Pipeline)
+                </button>
+              )}
+            </section>
+          )}
+
+          {/* HOLDING STATUS & TEST BYPASS BUTTON */}
+          {formData.pipelineStage === 'holding_truck_class' && (
+            <div className="bg-[#1A222D] p-6 rounded-lg border border-amber-500/40 text-center space-y-4">
+              <div>
+                <h3 className="text-amber-400 font-bold text-lg uppercase tracking-wide">Holding in Dispatch (Pending Truck Class)</h3>
                 <p className="text-gray-300 text-sm mt-1">
-                  MVR Matrix result logged as: <strong className="underline">{currentMatrixResult.status}</strong>. Application is waiting for truck class test score, attendance, and safety verification.
+                  MVR check cleared. Application is waiting for truck class test score, attendance, and safety verification.
                 </p>
               </div>
               <button 
@@ -495,12 +376,10 @@ export default function DriverApplicationCard() {
             </div>
           )}
 
-          {/* STEP 3: GENERAL MANAGER PERFORMANCE REVIEW */}
+          {/* STEP 3: GENERAL MANAGER PERFORMANCE REVIEW - HIDDEN UNTIL STAGE REACHED */}
           {formData.pipelineStage === 'gm_review' && (
-            <section className={`border-l-4 pl-6 p-4 rounded-r-lg ${isProhibitedOrFlagged ? 'border-red-600 bg-red-950/10' : 'border-gray-700 bg-transparent'}`}>
-              <h2 className={`text-xl font-bold mb-4 uppercase tracking-wide ${isProhibitedOrFlagged ? 'text-red-400' : 'text-gray-300'}`}>
-                Step 3: Employee Performance Review (GM) {isProhibitedOrFlagged ? '— [MEETING REQUIRED]' : ''}
-              </h2>
+            <section className="border-l-4 border-gray-700 bg-transparent pl-6 p-4 rounded-r-lg">
+              <h2 className="text-xl font-bold mb-4 uppercase tracking-wide text-gray-300">Step 3: Employee Performance Review (GM)</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-4">
                 <div>
                   <label className="text-gray-400 block mb-1">Reviewing Supervisor (General Manager)</label>
@@ -575,7 +454,7 @@ export default function DriverApplicationCard() {
                       checked={formData.gmStatus === 'approved'}
                       onChange={() => handleChange('gmStatus', 'approved')}
                       className="accent-[#22C55E] w-4 h-4" 
-                    /> Approved (Meeting Held / Overridden)
+                    /> Approved
                   </label>
                   <label className="flex items-center gap-2 text-gray-300 cursor-pointer">
                     <input 
@@ -584,16 +463,16 @@ export default function DriverApplicationCard() {
                       checked={formData.gmStatus === 'denied'}
                       onChange={() => handleChange('gmStatus', 'denied')}
                       className="accent-red-500 w-4 h-4" 
-                    /> Denied / Disqualified
+                    /> Denied (Flag)
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="text-gray-400 block mb-1">General Manager Comments (Meeting Notes)</label>
+                <label className="text-gray-400 block mb-1">General Manager Comments</label>
                 <textarea 
                   rows="2"
-                  placeholder="Enter GM review and meeting notes regarding MVR standing..."
+                  placeholder="Enter GM review comments..."
                   value={formData.gmComments}
                   onChange={(e) => handleChange('gmComments', e.target.value)}
                   className="w-full bg-[#0A0E14] border border-gray-700 rounded p-3 text-white focus:outline-none text-sm focus:border-[#22C55E]"
@@ -602,9 +481,9 @@ export default function DriverApplicationCard() {
             </section>
           )}
 
-          {/* STEP 4: FINAL SIGN-OFF */}
+          {/* STEP 4: FINAL COLLABORATIVE SIGN-OFF - HIDDEN UNTIL STAGE REACHED */}
           {formData.pipelineStage === 'gm_review' && (
-            <section className={`p-6 rounded-lg border ${isProhibitedOrFlagged ? 'bg-red-950/20 border-red-600/50' : 'bg-[#1A222D]/60 border-gray-800'}`}>
+            <section className="bg-[#1A222D]/60 p-6 rounded-lg border border-gray-800">
               <h2 className="text-xl font-bold text-white mb-2 uppercase tracking-wide">Step 4: Final Collaborative Sign-Off</h2>
               <p className="text-gray-400 mb-6 text-sm">All three parties must verify and check off to execute final promotion to Driver Class.</p>
               
@@ -636,7 +515,7 @@ export default function DriverApplicationCard() {
                 </div>
 
                 <div className="bg-[#0A0E14] p-4 rounded border border-gray-800 hover:border-[#22C55E] transition-colors">
-                  <span className="text-gray-400 block text-xs uppercase mb-2">General Manager Sign-Off</span>
+                  <span className="text-gray-400 county-of-residence block text-xs uppercase mb-2">General Manager Sign-Off</span>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input 
                       type="checkbox" 
